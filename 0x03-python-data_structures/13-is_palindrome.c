@@ -1,131 +1,114 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-/* Definition of singly linked list node */
-typedef struct listint_s
-{
-	int n;
-	struct listint_s *next;
-} listint_t;
+#include "lists.h"
 
 /**
- * is_palindrome - Checks if a singly linked list is a palindrome.
- * @head: Pointer to a pointer to the head of the linked list.
- * Return: 0 if not a palindrome, 1 if a palindrome.
+ * reverse - reverses the second half of the list
+ *
+ * @h_r: head of the second half
+ * Return: no return
+ */
+void reverse(listint_t **h_r)
+{
+	listint_t *prv;
+	listint_t *crr;
+	listint_t *nxt;
+
+	prv = NULL;
+	crr = *h_r;
+
+	while (crr != NULL)
+	{
+		nxt = crr->next;
+		crr->next = prv;
+		prv = crr;
+		crr = nxt;
+	}
+
+	*h_r = prv;
+}
+
+/**
+ * compare - compares each int of the list
+ *
+ * @h1: head of the first half
+ * @h2: head of the second half
+ * Return: 1 if are equals, 0 if not
+ */
+int compare(listint_t *h1, listint_t *h2)
+{
+	listint_t *tmp1;
+	listint_t *tmp2;
+
+	tmp1 = h1;
+	tmp2 = h2;
+
+	while (tmp1 != NULL && tmp2 != NULL)
+	{
+		if (tmp1->n == tmp2->n)
+		{
+			tmp1 = tmp1->next;
+			tmp2 = tmp2->next;
+		}
+		else
+		{
+			return (0);
+		}
+	}
+
+	if (tmp1 == NULL && tmp2 == NULL)
+	{
+		return (1);
+	}
+
+	return (0);
+}
+
+/**
+ * is_palindrome - checks if a singly linked list
+ * is a palindrome
+ * @head: pointer to head of list
+ * Return: 0 if it is not a palindrome,
+ * 1 if it is a palndrome
  */
 int is_palindrome(listint_t **head)
 {
-	if (*head == NULL || (*head)->next == NULL)
-	return 1;
+	listint_t *slow, *fast, *prev_slow;
+	listint_t *scn_half, *middle;
+	int isp;
 
-	listint_t *slow = *head, *fast = *head, *prev_slow = *head, *mid = NULL;
-	listint_t *second_half, *prev_of_slow = *head;
-	int is_palindrome = 1;
+	slow = fast = prev_slow = *head;
+	middle = NULL;
+	isp = 1;
 
-	/* Find the middle of the list */
-	while (fast != NULL && fast->next != NULL)
+	if (*head != NULL && (*head)->next != NULL)
 	{
-	fast = fast->next->next;
-	prev_slow = slow;
-	slow = slow->next;
+		while (fast != NULL && fast->next != NULL)
+		{
+			fast = fast->next->next;
+			prev_slow = slow;
+			slow = slow->next;
+		}
+
+		if (fast != NULL)
+		{
+			middle = slow;
+			slow = slow->next;
+		}
+
+		scn_half = slow;
+		prev_slow->next = NULL;
+		reverse(&scn_half);
+		isp = compare(*head, scn_half);
+
+		if (middle != NULL)
+		{
+			prev_slow->next = middle;
+			middle->next = scn_half;
+		}
+		else
+		{
+			prev_slow->next = scn_half;
+		}
 	}
 
-	/* If list has odd number of elements, skip the middle node */
-	if (fast != NULL)
-	{
-	mid = slow;
-	slow = slow->next;
-	}
-
-	/* Reverse the second half of the list */
-	second_half = slow;
-	prev_slow->next = NULL;
-	while (second_half != NULL)
-	{
-	listint_t *temp = second_half->next;
-	second_half->next = prev_of_slow;
-	prev_of_slow = second_half;
-	second_half = temp;
-	}
-
-	/* Compare the first and second halves */
-	listint_t *ptr1 = *head, *ptr2 = prev_of_slow;
-	while (ptr1 != NULL && ptr2 != NULL)
-	{
-	if (ptr1->n != ptr2->n)
-	{
-		is_palindrome = 0;
-		break;
-	}
-	ptr1 = ptr1->next;
-	ptr2 = ptr2->next;
-	}
-
-	/* Restore the list */
-	second_half = prev_of_slow;
-	prev_of_slow = NULL;
-	while (second_half != NULL)
-	{
-	listint_t *temp = second_half->next;
-	second_half->next = prev_of_slow;
-	prev_of_slow = second_half;
-	second_half = temp;
-}
-
-	if (mid != NULL)
-	{
-	prev_slow->next = mid;
-	mid->next = prev_of_slow;
-	}
-	else
-{
-        prev_slow->next = prev_of_slow;
-	{
-
-	return is_palindrome;
-}
-
-/* Helper function to create a new node */
-listint_t *newNode(int data)
-{
-	listint_t *node = malloc(sizeof(listint_t));
-	if (node == NULL)
-	{
-	fprintf(stderr, "Memory allocation failed\n");
-	exit(EXIT_FAILURE);
-	}
-	node->n = data;
-	node->next = NULL;
-	return node;
-}
-
-/* Helper function to print the linked list */
-void printList(listint_t *head)
-{
-	listint_t *temp = head;
-	while (temp != NULL)
-	{
-	printf("%d ", temp->n);
-	temp = temp->next;
-	}
-	printf("\n");
-}
-
-int main(void)
-{
-	listint_t *head = newNode(1);
-	head->next = newNode(2);
-	head->next->next = newNode(3);
-	head->next->next->next = newNode(2);
-	head->next->next->next->next = newNode(1);
-
-	printf("Original Linked List: ");
-	printList(head);
-
-	if (is_palindrome(&head))
-	printf("The linked list is a palindrome.\n");
-	else
-	printf("The linked list is not a palindrome.\n");
-
-	return 0;
+	return (isp);
 }
